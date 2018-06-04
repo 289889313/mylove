@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hw.dao.UserMapper">
+	<cache />
+	<!-- parameterType 简单数据类型 实体类 
+	需求：查询所有购买摄像镜头的用户信息
+	查询条件复杂：
+		1.可以使用一个包装类（类  为了满足当前需求，临时构建的类，和数据表中不一定有对应关系）
+	 -->
+	 
+	<!-- resultType   简单数据类型  实体类   集合
+	需求：查询所有购买摄像镜头的用户信息
+查询结果的返回值是有查询语句中  查询结果的列名决定，和表的列名没有直接关系
+	 -->
+	<resultMap type="UserSelectResultVo" id="rmtest">
+		<!-- <id column="" property=""/> -->
+<!-- <result column="查询结果集的列名，和表名无关" property="结果类的属性名"/> -->
+		<result column="usid" property="userId"/>
+		<result column="ordern" property="orderName"/>
+		<result column="iname" property="itemName"/>
+	</resultMap>
+	<select id="getUsersResultMapByVo"	 parameterType="UserSelectVo"  resultMap="rmtest">
+	 
+		select userid usid ,ordername ordern,itemname iname from users ,orders,items,orderdetail
+		where users.userid=orders.user_id 
+		and orderdetail.order_id=orders.orderid
+		and orderdetail.item_id=items.itemid
+		and ordernote=#{orders.orderNote}
+		and orderdate>#{orders.orderDate}
+		and itemname=#{items.itemName}
+
+	</select>
+	
+	<select id="getUsersResultByVo" 
+	parameterType="UserSelectVo" 
+	resultType="UserSelectResultVo">
+		select userid ,ordernumber  ,itemname  from users ,orders,items,orderdetail
+		where users.userid=orders.user_id 
+		and orderdetail.order_id=orders.orderid
+		and orderdetail.item_id=items.itemid
+		and ordernote=#{orders.orderNote}
+		and orderdate>#{orders.orderDate}
+		and itemname=#{items.itemName}
+
+	</select>
+	<select id="getUsersByVo" parameterType="UserSelectVo" resultType="User">
+		select users.* from users ,orders,items,orderdetail
+		
+		<!--where 会自动处理第一个子句中的and   -->
+		<!--如果sql片段 不再同一个mapper文件   需要通过mapper的namespace进行引用  -->
+	<!-- 	<include refid="com.hw.dao.UserMapper.wheretest"></include> -->
+		<include refid="wheretest"></include>
+		and itemname=#{items.itemName}
+		and users.userid=orders.user_id 
+		and orderdetail.order_id=orders.orderid
+		and orderdetail.item_id=items.itemid
+	</select>
+	
+	<sql id="wheretest">
+		<where>
+			<if test="orders!=null">
+				<if test="orders.orderNote!=null">
+					and ordernote=#{orders.orderNote}
+				</if>
+			and orderdate>#{orders.orderDate}
+		</if>
+		
+		</where>
+	</sql>
+
+
+	<select id="getOneUserByIdtest" resultType="int"  parameterType="int">
+		select username from users where userid=#{uid}
+	</select>
+	
+	<select id="getOneUserById" resultType="User" parameterType="int">
+		select * from users where userid=#{uid}
+	</select>
+
+	<insert id="insertOneUser" parameterType="com.hw.entity.User">
+		<selectKey keyProperty="userId" order="BEFORE" resultType="int">
+			select seq_users.NEXTVAL from dual
+		</selectKey>
+		<!--mybatis 是根据sql语句进行数据库操作，并不是根据传进来的对象进行操作 -->
+		insert into users(userId,userName) values(#{userId},'test')
+		<!--insert into users(userid) values(seq_users.NEXTVAL) -->
+		<!-- insert into users(userid) values(104) -->
+
+		<!-- insert into users(userid) select 300 from dual union all select 200 
+			from dual -->
+	</insert>
+
+	<delete id="deleteUserById" parameterType="int">
+		delete from users
+		where userid=#{uid}
+	</delete>
+	<update id="updateUser" parameterType="com.hw.entity.User">
+		update users set
+		username=#{userName},loginName=#{loginName}
+		where userid=#{userId}
+	</update>
+
+
+
+	<select id="getUsersByList5" parameterType="map" resultType="user">
+		
+		select * from users where userName=#{uname} or
+		<foreach collection="userids" item="userid"	
+		separator=" or ">
+			userid=#{userid}
+		</foreach>
+	</select>
+	<select id="getUsersByList4" parameterType="arraylist" resultType="user">
+		
+		select * from users where
+		<foreach collection="array" item="userid"	
+		separator=" or ">
+			userid=#{userid}
+		</foreach>
+	</select>
+	<select id="getUsersByList3" parameterType="list" resultType="user">
+		
+		select * from users where
+		<foreach collection="list" item="userid"	
+		separator=" or ">
+			userid=#{userid}
+		</foreach>
+	</select>
+	
+	<select id="getUsersByList" parameterType="UserSelectVo" 
+	resultType="user">
+		<!-- select * from users where userid=1 or userid=3 or userid=5 -->
+		<!-- UserSelectVo 具备一个ids的集合   循环遍历集合   获得每一个元素 -->
+		select * from users where
+		<foreach collection="ids" item="userid"	
+		separator=" or ">
+			userid=#{userid}
+		</foreach>
+	</select>
+	
+	<select id="getUsersByList0" parameterType="UserSelectVo" 
+	resultType="user">
+		<!-- select * from users where userid in(1,3,5) -->		
+		<!-- UserSelectVo 具备一个ids的集合   循环遍历集合   获得每一个元素 -->
+		select * from users where userid 
+		<foreach collection="ids" item="userid"
+		open="(" close=")" 
+		separator=",">
+			#{userid}
+		</foreach>		
+	</select>
+	
+	<!--批量插入数据  -->
+	<insert id="piLiangChaRu" parameterType="UserSelectVo">
+	
+	insert into users(userid,username) 
+	<foreach collection="users" item="u" separator=" union all ">
+		select #{u.userId},#{u.userName} from dual
+	
+	</foreach>
+	
+	</insert>
+<!--     一对一映射                     -->
+	<select id="getOrderAndUser" resultType="OrderAndUserVo" >
+		select o.* ,username,userid
+		from orders o,users u
+		where o.user_id=u.userid
+	</select>
+	
+	<select id="getOrderAndUserResultMap" resultMap="OrdersAndUserMap" >
+		select o.* ,username,userid
+		from orders o,users u
+		where o.user_id=u.userid
+	</select>
+ 
+	<resultMap type="Orders" id="OrdersAndUserMap">
+		<id column="orderId" property="orderId"/>
+		<result column="orderNumber" property="orderNumber"/>
+		<result column="orderDate" property="orderDate"/>
+		<result column="orderNote" property="orderNote"/>
+		<result column="user_id" property="user_id"/>
+		<!--association配置 当前type类型中  存在的一对一关系的对象  -->
+		<association property="user" javaType="User" >
+			<id column="user_id" property="userId"/>
+			<result column="username" property="userName"/>
+		</association>
+	
+	</resultMap>
+
+	<!--只查询order  -->
+	<select id="getOrderById" parameterType="int"
+		resultMap="OrdersMap"	>
+		select * from orders where orderid=#{oid}	
+	</select>
+	
+	<!--只查询user  -->
+	<select id="getUserByOrder_UserId" parameterType="int"
+		resultType="user">
+		select * from users where userid=#{user_id}	
+	</select>
+
+	<resultMap type="Orders" id="OrdersMap">
+		<id column="orderId" property="orderId"/>
+		<result column="orderNumber" property="orderNumber"/>
+		<result column="orderDate" property="orderDate"/>
+		<result column="orderNote" property="orderNote"/>
+		<result column="user_id" property="user_id"/>
+		<!--association配置 当前type类型中  存在的一对一关系的对象  
+		select userid from user where userid-=
+		select：调用另外一个查询功能，column相当于连接条件
+		-->
+		<association property="user" javaType="User" 
+		select="getUserByOrder_UserId" column="user_id" >
+			
+		</association>
+	
+	</resultMap>
+
+
+
+
+
+
+
+
+
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hw.dao.UserMapper">
+	<cache/>
+	<select  id="getOneUserById" resultType="User"
+		parameterType="int">
+		select userid,username from users where userid=#{uid}
+	</select>
+
+	<insert id="insertOneUser" parameterType="com.hw.entity.User">
+		<selectKey keyProperty="userId" order="BEFORE" resultType="int">
+			select seq_users.NEXTVAL  from dual
+		</selectKey>
+		<!--mybatis 是根据sql语句进行数据库操作，并不是根据传进来的对象进行操作  -->
+		insert into users(userId,userName) values(#{userId},'test')
+		<!--insert into users(userid) values(seq_users.NEXTVAL)  -->
+		<!-- insert into users(userid) values(104) -->
+		
+		<!-- 
+		insert into users(userid)
+		select 300 from dual
+		union all
+		select 200 from dual
+		 -->
+	</insert>
+	
+	<delete id="deleteUserById" parameterType="int">
+		delete from users where userid=#{uid}
+	</delete>
+	<update id="updateUser" parameterType="com.hw.entity.User">
+		update users set username=#{userName},loginName=#{loginName}
+		where userid=#{userId}
+	</update>
+	
+</mapper>

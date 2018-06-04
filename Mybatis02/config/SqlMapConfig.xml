@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!--引用外部属性文件
+外部文件的属性优先级高于当前property属性的优先级
+加载顺序  ：先加载当前文档的property，后加载外部文件，
+外部文件中同名的属性覆盖了当前文档的property
+	
+	  -->
+	<properties resource="db.properties">
+		<property name="jdbc.oracle.username" value="qicai"/>
+	</properties>
+	
+	<!--全局设置  -->
+	<settings>
+		<!-- <setting name="属性名" value="属性值"/> -->
+		<setting name="cacheEnabled" value="true"/>
+		<!--延迟加载 lazyLoadingEnabled优先级高 -->
+		<!-- <setting name="lazyLoadingEnabled" value="true"/> -->
+		<!-- <setting name="aggressiveLazyLoading" value="true"/> -->
+		
+		<!--即时加载  -->
+	<!-- 	<setting name="lazyLoadingEnabled" value="false"/>
+		<setting name="aggressiveLazyLoading" value="true"/>
+		 -->
+	</settings>
+	
+	<!--别名  -->
+	<typeAliases>
+		<!--单个对象定义  -->
+	<!-- 	<typeAlias type="com.hw.entity.User" alias="user"/> -->
+		<!--统一起别名 ，类的别名就是 对象名或者类的名字   首字母可以大写也可以小写 -->
+		<package name="com.hw.entity"/>
+	</typeAliases>
+	<!-- 和spring整合后 environments配置将废除-->
+	<environments default="development">
+		<environment id="development">
+		
+		<!-- 使用jdbc事务管理，事务控制由mybatis-->
+			<transactionManager type="JDBC" />
+		<!-- 数据库连接池，由mybatis管理-->
+			<dataSource type="POOLED">
+				<property name="driver" value="${jdbc.oracle.driver}" />
+				<property name="url" value="${jdbc.oracle.url}" />
+				<property name="username" value="${jdbc.oracle.username}" />
+				<property name="password" value="${jdbc.oracle.password}" />
+			</dataSource>
+		</environment>
+	</environments>
+	
+	<!--加载mapper.xml  -->
+	<mappers>
+		<!-- <mapper resource="sqlmap/UserMapper.xml"/> -->
+		
+		<!--要求mapper映射文件  必须和 接口文件在同一个目录  -->
+		<!-- <mapper class="com.hw.dao.UserMapper"/> -->
+		
+		<!--要求mapper映射文件  必须和 接口文件在同一个目录  -->
+		<package name="com.hw.dao"/>
+		
+	</mappers>
+</configuration>	
